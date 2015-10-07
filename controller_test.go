@@ -1,0 +1,2 @@
+package funcmock_test
+

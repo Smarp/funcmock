@@ -1,0 +1,2 @@
+# funcmock
+Mocking Golang functions
