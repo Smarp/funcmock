@@ -1,7 +1,6 @@
 package funcmock
 
 type call struct {
-
 }
 
 func (this *call) ParamNth(nth int) interface{} {

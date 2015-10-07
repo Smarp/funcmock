@@ -1,11 +1,14 @@
 package funcmock
-import ("reflect")
+
+import (
+	"reflect"
+)
 
 type mockController struct {
-	originalFunc reflect.Value
-	targetFunc reflect.Value
-	oFuncPtr interface{}
-	oFunc interface{}
+	originalFunc   reflect.Value
+	targetFunc     reflect.Value
+	oFuncPtr       interface{}
+	oFunc          interface{}
 	callStackStack map[int]*call
 }
 
@@ -17,11 +20,11 @@ func (this *mockController) CallNth(nth int) *call {
 	return nil
 }
 
-func (this *mockController) CallOther()  *call {
+func (this *mockController) CallOther() *call {
 	return nil
 }
 
-func (this *mockController) Called()  bool {
+func (this *mockController) Called() bool {
 	return false
 }
 

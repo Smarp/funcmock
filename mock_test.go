@@ -1,11 +1,14 @@
 package funcmock
+
 import (
+	"sync"
 	"testing"
-. "github.com/onsi/gomega"
+
+	. "github.com/onsi/gomega"
 )
 
 func TestZeroValueInt(*testing.T) {
-	reverse := func (i int) int {
+	reverse := func(i int) int {
 		return -i
 	}
 	Expect(reverse(1)).To(Equal(-1))
@@ -16,7 +19,7 @@ func TestZeroValueInt(*testing.T) {
 }
 
 func TestZeroValueString(*testing.T) {
-	prepend := func (i string) string {
+	prepend := func(i string) string {
 		return "prefix" + i
 	}
 	Expect(prepend("body")).To(Equal("prefixbody"))
@@ -24,4 +27,22 @@ func TestZeroValueString(*testing.T) {
 	Expect(prepend("body")).To(Equal(""), "zero value")
 	mockCtrl.Restore()
 	Expect(prepend("body")).To(Equal("prefixbody"))
+}
+
+func TestRaceCondition(*testing.T) {
+	reverse := func(i int) int {
+		return -i
+	}
+	mockCtrl := Mock(&reverse)
+	var wg sync.WaitGroup
+	const z = 1000
+	wg.Add(z)
+	for i := 0; i < z; i++ {
+		go func() {
+			defer wg.Done()
+			reverse(i)
+		}()
+	}
+	wg.Wait()
+	Expect(mockCtrl.CallCounter()).To(Equal(z))
 }
