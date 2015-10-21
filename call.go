@@ -32,7 +32,7 @@ func (this *call) SetReturn(args ...interface{}) *call {
 		Clears any previous return that was set
 
 	*/
-
+	this.yield = this.yield[:0]
 	for _, nthIndex := range args {
 		this.yield = append(this.yield, nthIndex)
 	}
