@@ -14,7 +14,7 @@ var idempotentMock = Mock(&idempotent)
 
 func TestCallCounter0(t *testing.T) {
 	RegisterTestingT(t)
-	Expect(idempotentMock.CallCounter()).To(Equal(0))
+	Expect(idempotentMock.CallCount()).To(Equal(0))
 }
 
 func TestCalledFalse(t *testing.T) {

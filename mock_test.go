@@ -100,6 +100,6 @@ func TestRaceCondition(t *testing.T) {
 				reverse(i)
 			}
 		})
-		Expect(mockCtrl.CallCounter()).To(Equal(b.N))
+		Expect(mockCtrl.CallCount()).To(Equal(b.N))
 	})
 }

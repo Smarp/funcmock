@@ -16,7 +16,7 @@ type mockController struct {
 	yieldSet bool
 }
 
-func (this *mockController) CallCounter() int {
+func (this *mockController) CallCount() int {
 	return this.counter
 }
 
@@ -55,11 +55,11 @@ func (this *mockController) SetDefaultReturn(args ...interface{}) {
 }
 
 func (this *mockController) add(c *call) {
-	this.callStack[this.CallCounter()-1] = c
+	this.callStack[this.CallCount()-1] = c
 }
 
 func (this *mockController) Called() bool {
-	return this.CallCounter() > 0
+	return this.CallCount() > 0
 }
 
 func (this *mockController) Restore() {

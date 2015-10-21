@@ -20,7 +20,7 @@ func init() {
 
 func TestCallCounter3(t *testing.T) {
 	RegisterTestingT(t)
-	Expect(swapMock.CallCounter()).To(Equal(3))
+	Expect(swapMock.CallCount()).To(Equal(3))
 }
 
 func TestCalledTrue(t *testing.T) {
