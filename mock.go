@@ -1,43 +1,51 @@
 package funcmock
 
-import (
-	"reflect"
-)
+import "reflect"
 
-// makeSwap expects fptr to be a pointer to a nil function.
-// It sets that pointer to a new function created with MakeFunc.
-// When the function is invoked, reflect turns the arguments
-// into Values, calls swap, and then turns swap's result slice
-// into the values returned by the new function.
-func Mock(targetFnPtr interface{}) *mockController {
-	return new(mockController)
-	// fptr is a pointer to a function.
-	// Obtain the function value itself as a reflect.Value
-	// so that we can query its type and then set the value.
+func Mock(targetFnPtr interface{}) (controller *mockController) {
+
 	targetFn := reflect.ValueOf(targetFnPtr).Elem()
-	//	reflect.
+	controller = &mockController{
+		callStack: make(map[int]*call),
+		counter:   0,
+	}
+	controller.targetFunc = targetFn
+	targetFnType := targetFn.Type()
+	numberOfOuts := targetFnType.NumOut()
 
-	originalFn := reflect.ValueOf(targetFnPtr).Elem()
-	mockCtrl := new(mockController)
-	//	mockCtrl.SetOriginal(reflect.ValueOf(targetFnPtr), reflect.ValueOf(targetFnPtr).Elem())
-	// Make a function of the right type.
-	// swap is the implementation passed to MakeFunc.
-	// It must work in terms of reflect.Values so that it is possible
-	// to write code without knowing beforehand what the types
-	// will be.
-	//	v := reflect.MakeFunc(fn.Type(), func(inValueSlice []reflect.Value) []reflect.Value {
-	//		inInterfaceSlice := []interface{}{}
-	//		for _, inValue := range inValueSlice {
-	//			inInterfaceSlice = append(inInterfaceSlice, inValue.Interface())
-	//		}
-	//		mockCtrl.Call(inInterfaceSlice)
-	//		return mockfn.Call(inValueSlice)
-	//	})
+	controller.originalFunc = reflect.ValueOf(targetFn.Interface())
 
-	// Assign it to the value fn represents.
-	//	targetFn.Set(mockfn)
-	_ = originalFn
-	_ = targetFn
-	//	targetFn.Set(originalFn)
-	return mockCtrl
+	for i := 0; i < numberOfOuts; i++ {
+		controller.defaultYield = append(controller.defaultYield,
+			reflect.Zero(targetFnType.Out(i)))
+	}
+
+	mockFn := reflect.MakeFunc(targetFnType,
+		func(inValueSlice []reflect.Value) (yield []reflect.Value) {
+			controller.incrementCounter()
+			theCall, ok := controller.callStack[controller.CallCounter()-1]
+			if ok == false {
+				theCall = new(call)
+				controller.add(theCall)
+			}
+			theCall.called = true
+			for i := 0; i < targetFnType.NumIn(); i++ {
+				theCall.param = append(theCall.param, inValueSlice[i].Interface())
+
+			}
+			if numberOfOuts == len(theCall.yield) {
+				// if user has set the return values the spit them out
+				for i := 0; i < numberOfOuts; i++ {
+					yield = append(yield, reflect.ValueOf(theCall.yield[i]))
+				}
+			} else {
+				yield = controller.defaultYield
+			}
+			return yield
+		},
+	)
+
+	targetFn.Set(mockFn)
+
+	return controller
 }

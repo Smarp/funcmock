@@ -1,10 +1,6 @@
 package funcmock
 
-import (
-	"testing"
-
-	. "github.com/onsi/gomega"
-)
+// import . "github.com/onsi/gomega"
 
 var empty = func(s string) int {
 	return 0
@@ -18,7 +14,9 @@ func init() {
 	empty("empty")
 }
 
-func TestCallReverseOrder(*testing.T) {
+/*
+func TestCallReverseOrder(t *testing.T) {
+	RegisterTestingT(t)
 	Expect(emptyMock.CallNth(0)).To(Equal(emptyMock.CallNth(-3)))
 	Expect(emptyMock.CallNth(1)).To(Equal(emptyMock.CallNth(-2)))
 	Expect(emptyMock.CallNth(2)).To(Equal(emptyMock.CallNth(-1)))
@@ -26,3 +24,4 @@ func TestCallReverseOrder(*testing.T) {
 	Expect(emptyMock.CallNth(0)).NotTo(Equal(emptyMock.CallNth(1)))
 	Expect(emptyMock.CallNth(0)).NotTo(Equal(emptyMock.CallNth(-2)))
 }
+*/
