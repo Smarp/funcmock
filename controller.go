@@ -2,7 +2,7 @@ package funcmock
 
 import "reflect"
 
-type mockController struct {
+type MockController struct {
 	originalFunc reflect.Value
 	targetFunc   reflect.Value
 	// we need map, not slice, to set call before it is called
@@ -16,7 +16,7 @@ type mockController struct {
 	yieldSet bool
 }
 
-func (this *mockController) CallCounter() int {
+func (this *mockController) CallCount() int {
 	return this.counter
 }
 
@@ -38,12 +38,25 @@ func (this *mockController) SetDefaultReturn(args ...interface{}) {
 	if this.targetFunc == reflect.Zero(this.targetFunc.Type()) {
 		panic("Internal Error: Target Function should prior to calling SetDefaultReturn")
 	}
-	typeNumOut := this.targetFunc.Type().NumOut()
+	fnType := this.targetFunc.Type()
+	typeNumOut := fnType.NumOut()
 	if len(args) == typeNumOut && !this.yieldSet {
 		this.defaultYield = this.defaultYield[:0]
 		for i := 0; i < typeNumOut; i++ {
-			this.defaultYield = append(this.defaultYield,
-				reflect.ValueOf(args[i]))
+			if args[i] == nil {
+				// kind of return param, eg. ptr, slice, etc.
+				kind := fnType.Out(i).Kind()
+				switch kind {
+				case reflect.Ptr:
+				default:
+					panic("Cannot set nil to not-pointer type")
+				}
+				v := reflect.Zero(fnType.Out(i))
+				this.defaultYield = append(this.defaultYield, v)
+			} else {
+				this.defaultYield = append(this.defaultYield,
+					reflect.ValueOf(args[i]))
+			}
 		}
 		this.yieldSet = true
 	} else if this.yieldSet {
@@ -55,11 +68,11 @@ func (this *mockController) SetDefaultReturn(args ...interface{}) {
 }
 
 func (this *mockController) add(c *call) {
-	this.callStack[this.CallCounter()-1] = c
+	this.callStack[this.CallCount()-1] = c
 }
 
 func (this *mockController) Called() bool {
-	return this.CallCounter() > 0
+	return this.CallCount() > 0
 }
 
 func (this *mockController) Restore() {

@@ -23,7 +23,7 @@ func Mock(targetFnPtr interface{}) (controller *mockController) {
 	mockFn := reflect.MakeFunc(targetFnType,
 		func(inValueSlice []reflect.Value) (yield []reflect.Value) {
 			controller.incrementCounter()
-			theCall, ok := controller.callStack[controller.CallCounter()-1]
+			theCall, ok := controller.callStack[controller.CallCount()-1]
 			if ok == false {
 				theCall = new(call)
 				controller.add(theCall)
