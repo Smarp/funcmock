@@ -1,5 +1,7 @@
 package funcmock
 
+import "reflect"
+
 type call struct {
 
 	// what parameter the function was passed
@@ -44,4 +46,27 @@ func (this *call) Return(args ...interface{}) *call {
 	// needs to be thought over. Whether this function is required or not
 
 	return this
+}
+
+func sanitizeReturn(returnType reflect.Type, yield interface{}) (sanitizedYield reflect.Value) {
+
+	if yield == nil {
+		// kind of return param, eg. ptr, slice, etc.
+		kind := returnType.Kind()
+		switch kind {
+		case reflect.Ptr:
+		case reflect.Chan:
+		case reflect.Func:
+		case reflect.Interface:
+		case reflect.Map:
+		case reflect.Slice:
+		default:
+			panic("Cannot set nil to not-pointer type")
+		}
+		v := reflect.Zero(returnType)
+		return v
+	} else {
+		return reflect.ValueOf(yield)
+	}
+
 }

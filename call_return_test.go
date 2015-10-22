@@ -69,3 +69,18 @@ func TestSetDefaultReturnNil(t *testing.T) {
 	Expect(v8).To(BeNil())
 	Expect(v9).To(BeNil())
 }
+
+func TestSetReturnNil(t *testing.T) {
+	RegisterTestingT(t)
+
+	var swap = func(i, j int) (*int, *int) {
+		return &j, &i
+	}
+	_, _ = swap(1, 1)
+	var swapMock = Mock(&swap)
+	swapMock.NthCall(0).SetReturn(nil, nil)
+	Expect(func() { _, _ = swap(2, 2) }).NotTo(Panic())
+	v8, v9 := swap(2, 2)
+	Expect(v8).To(BeNil())
+	Expect(v9).To(BeNil())
+}
