@@ -1,6 +1,7 @@
 package funcmock
 
 import (
+	"errors"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -44,15 +45,14 @@ func TestSetDefaultReturnWrongType(t *testing.T) {
 	}
 	_, _ = swap(1, 1)
 	var swapMock = Mock(&swap)
-	swapMock.SetDefaultReturn("three", "four")
 	var panicMessage interface{}
 	func() {
 		defer func() {
 			panicMessage = recover()
 		}()
-		_, _ = swap(2, 2)
+		swapMock.SetDefaultReturn("three", "four")
 	}()
-	Expect(panicMessage).To(Equal("reflect: function created by MakeFunc using closure returned wrong type: have string for int"))
+	Expect(panicMessage).To(Equal("reflect.Value.Convert: value of type string cannot be converted to type int"))
 }
 
 func TestSetDefaultReturnNil(t *testing.T) {
@@ -83,4 +83,17 @@ func TestSetReturnNil(t *testing.T) {
 	v8, v9 := swap(2, 2)
 	Expect(v8).To(BeNil())
 	Expect(v9).To(BeNil())
+}
+func TestSetReturnWithErrorReturnParam(t *testing.T) {
+	RegisterTestingT(t)
+
+	var funcToTest = func(i int, j int) (err error) {
+		return err
+	}
+	var swapMock = Mock(&funcToTest)
+	swapMock.NthCall(0).SetReturn(errors.New("message"))
+	Expect(func() { _ = funcToTest(2, 2) }).NotTo(Panic())
+	swapMock.NthCall(1).SetReturn(errors.New("message"))
+	err := funcToTest(2, 2)
+	Expect(err.Error()).To(Equal("message"))
 }

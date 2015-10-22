@@ -66,7 +66,8 @@ func sanitizeReturn(returnType reflect.Type, yield interface{}) (sanitizedYield 
 		v := reflect.Zero(returnType)
 		return v
 	} else {
-		return reflect.ValueOf(yield)
+
+		return reflect.ValueOf(yield).Convert(returnType)
 	}
 
 }
