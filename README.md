@@ -1,83 +1,59 @@
-funcmock is function mocking library which replaces the lexical placeholder of the function with a mock. It is primarily intended to be used for testing purposes.
-
-<!-- Documentation -->
-<!-- ------------- -->
-
-<!-- After installing, you can use `go doc` to get documentation: -->
-
-<!--     go doc github.com/golang/mock/gomock -->
-
-<!-- Alternatively, there is an online reference for the package hosted on GoPkgDoc -->
-<!-- [here][gomock-ref]. -->
-
+*funcmock* is a function mocking library which replaces the lexical placeholder of the function with a mock. It is primarily intended to be used for testing purposes.
 
  Using funcmock
 ---------------
 
-Example:
+**Example:**
 
     package main
     
     import "funcmock"
     
-    func funcToBeMocked() {
+    var funcToBeMocked = func(foo int, bar string) (int, float64) {
     	// I am computation intensive, hence take long
     	// Don't use me unnecessarily
+    	return 2, 2.3
+    
     }
     
-    func iUseFuncToBeMockedTenTimes(){
+    func iUseFuncToBeMockedTenTimes() {
     
-    	for _ : range 10{
-    		funcToBeMocked()
+    	for i := 0; i < 10; i++ {
+    		_, _ = funcToBeMocked(1, "qux")
     	}
     }
     
     func main() {
     
     	// The mock engine specific to a function
-    	funcMockEngine = funcmock.Mock(&funcToBeMocked)
+    	funcMockEngine := funcmock.Mock(&funcToBeMocked)
     
     	// call iUseFuncToBeMockedTenTimes which calls funcToBeMocked
-    	iUseFuncToBeMockedTenTimes() 	// actual funcToBeMocked is not called
+    	iUseFuncToBeMockedTenTimes() // actual funcToBeMocked is not called
     
-    	fmt.Println("Mock function called: ", funcMockEngine.CallCount())
-    	// prints "Mock function called: 10"
-    	
     }
-    
+		
 
-<!-- The `mockgen` command is used to generate source code for a mock -->
-<!-- class given a Go source file containing interfaces to be mocked. -->
-<!-- It supports the following flags: -->
+ * `Controller.CallCount()` returns the number of times the function was called
 
-<!--  *  `-source`: The file containing interfaces to be mocked. You must -->
-<!--     supply this flag. -->
+        // call iUseFuncToBeMockedTenTimes which calls funcToBeMocked
+        iUseFuncToBeMockedTenTimes() 	// actual funcToBeMocked is not called
+        fmt.Println("Mock function called ", funcMockEngine.CallCount(), " times.")	 
+			 
+	will print *Mock function called:  10*
 
-<!--  *  `-destination`: A file to which to write the resulting source code. If you -->
-<!--     don't set this, the code is printed to standard output. -->
+ * `MockController.SetDefaultReturn` sets default return of the calls to the mock function which are not preset. This function can only be called once. (This behavior, of being able to just call it once, can be expected to change in future)
 
-<!--  *  `-package`: The package to use for the resulting mock class -->
-<!--     source code. If you don't set this, the package name is `mock_` concatenated -->
-<!--     with the package of the input file. -->
+ * `MockController.Called()` returns a `bool` indicating whether the mock function was ever called or not.
 
-<!--  *  `-imports`: A list of explicit imports that should be used in the resulting -->
-<!--     source code, specified as a comma-separated list of elements of the form -->
-<!--     `foo=bar/baz`, where `bar/baz` is the package being imported and `foo` is -->
-<!--     the identifier to use for the package in the generated source code. -->
+ * `MockController.Restore()` returns the function to its original version. Mock function cannot be brought back after calling this. Further call the function will not invoke the mock or update the logs associated with the call to the mocked function, and will invoke the original function.
 
-<!--  *  `-aux_files`: A list of additional files that should be consulted to -->
-<!--     resolve e.g. embedded interfaces defined in a different file. This is -->
-<!--     specified as a comma-separated list of elements of the form -->
-<!--     `foo=bar/baz.go`, where `bar/baz.go` is the source file and `foo` is the -->
-<!--     package name of that file used by the -source file. -->
+ * `MockController.NthCall()` returns a `call` struct instance of the nth call to the mock function since the mock was constructed. Does not have to be already called.
 
-<!-- For an example of the use of `mockgen`, see the `sample/` directory. In simple -->
-<!-- cases, you will need only the `-source` flag. -->
+ * `call.SetReturn` presets the return of a particular call of the mock function. (Of course, it should not have already been called, else it could not be of much use.)
 
+ * `call.Called()` returns `bool` indicating whether a particular call to the mock function was made or not.
 
-<!-- TODO: Brief overview of how to create mock objects and set up expectations, and -->
-<!-- an example. -->
+ * `call.ParamNth()` returns the parameter that was used in a particular call to the mock function.
 
-<!-- [golang]: http://golang.org/ -->
-<!-- [golang-install]: http://golang.org/doc/install.html#releases -->
-<!-- [gomock-ref]: http://godoc.org/github.com/golang/mock/gomock -->
+ * `call.Return()` its functionality is currently undecided. Returns instance of the same `call`, for now.
