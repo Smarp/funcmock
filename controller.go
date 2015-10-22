@@ -16,11 +16,11 @@ type MockController struct {
 	yieldSet bool
 }
 
-func (this *mockController) CallCount() int {
+func (this *MockController) CallCount() int {
 	return this.counter
 }
 
-func (this *mockController) CallNth(nth int) (c *call) {
+func (this *MockController) CallNth(nth int) (c *call) {
 	c = this.callStack[nth]
 	if c == nil {
 		c = new(call)
@@ -29,12 +29,12 @@ func (this *mockController) CallNth(nth int) (c *call) {
 	return c
 }
 
-func (this *mockController) incrementCounter() {
+func (this *MockController) incrementCounter() {
 	this.counter++
 	return
 }
 
-func (this *mockController) SetDefaultReturn(args ...interface{}) {
+func (this *MockController) SetDefaultReturn(args ...interface{}) {
 	if this.targetFunc == reflect.Zero(this.targetFunc.Type()) {
 		panic("Internal Error: Target Function should prior to calling SetDefaultReturn")
 	}
@@ -67,14 +67,14 @@ func (this *mockController) SetDefaultReturn(args ...interface{}) {
 
 }
 
-func (this *mockController) add(c *call) {
+func (this *MockController) add(c *call) {
 	this.callStack[this.CallCount()-1] = c
 }
 
-func (this *mockController) Called() bool {
+func (this *MockController) Called() bool {
 	return this.CallCount() > 0
 }
 
-func (this *mockController) Restore() {
+func (this *MockController) Restore() {
 	this.targetFunc.Set(this.originalFunc)
 }

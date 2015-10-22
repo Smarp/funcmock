@@ -2,10 +2,10 @@ package funcmock
 
 import "reflect"
 
-func Mock(targetFnPtr interface{}) (controller *mockController) {
+func Mock(targetFnPtr interface{}) (controller *MockController) {
 
 	targetFn := reflect.ValueOf(targetFnPtr).Elem()
-	controller = &mockController{
+	controller = &MockController{
 		callStack: make(map[int]*call),
 		counter:   0,
 	}
