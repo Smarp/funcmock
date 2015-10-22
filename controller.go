@@ -2,7 +2,7 @@ package funcmock
 
 import "reflect"
 
-type mockController struct {
+type MockController struct {
 	originalFunc reflect.Value
 	targetFunc   reflect.Value
 	// we need map, not slice, to set call before it is called
