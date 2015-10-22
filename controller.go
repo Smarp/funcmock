@@ -38,12 +38,25 @@ func (this *mockController) SetDefaultReturn(args ...interface{}) {
 	if this.targetFunc == reflect.Zero(this.targetFunc.Type()) {
 		panic("Internal Error: Target Function should prior to calling SetDefaultReturn")
 	}
-	typeNumOut := this.targetFunc.Type().NumOut()
+	fnType := this.targetFunc.Type()
+	typeNumOut := fnType.NumOut()
 	if len(args) == typeNumOut && !this.yieldSet {
 		this.defaultYield = this.defaultYield[:0]
 		for i := 0; i < typeNumOut; i++ {
-			this.defaultYield = append(this.defaultYield,
-				reflect.ValueOf(args[i]))
+			if args[i] == nil {
+				// kind of return param, eg. ptr, slice, etc.
+				kind := fnType.Out(i).Kind()
+				switch kind {
+				case reflect.Ptr:
+				default:
+					panic("Cannot set nil to not-pointer type")
+				}
+				v := reflect.Zero(fnType.Out(i))
+				this.defaultYield = append(this.defaultYield, v)
+			} else {
+				this.defaultYield = append(this.defaultYield,
+					reflect.ValueOf(args[i]))
+			}
 		}
 		this.yieldSet = true
 	} else if this.yieldSet {
