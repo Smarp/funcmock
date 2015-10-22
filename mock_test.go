@@ -37,7 +37,7 @@ func TestSetDefaultReturn(t *testing.T) {
 		return j, i
 	}
 	var swapMock = Mock(&swap)
-	swapMock.CallNth(0).SetReturn(2, 3)
+	swapMock.NthCall(0).SetReturn(2, 3)
 	swapMock.SetDefaultReturn(12, 13)
 	v2, v3 := swap(5, 6)
 	Expect(v2).To(Equal(2))
@@ -54,7 +54,7 @@ func TestCallSetDefaultReturnOnce(t *testing.T) {
 		return j, i
 	}
 	var swapMock = Mock(&swap)
-	swapMock.CallNth(0).SetReturn(2, 3)
+	swapMock.NthCall(0).SetReturn(2, 3)
 	Expect(func() { swapMock.SetDefaultReturn(1, 3) }).NotTo(Panic())
 	Expect(func() { swapMock.SetDefaultReturn(1, 3) }).To(Panic())
 
@@ -68,7 +68,7 @@ RegisterTestingT(t)
 		return j, i
 	}
 	var swapMock = Mock(&swap)
-	swapMock.CallNth(0).SetReturn(2, 3)
+	swapMock.NthCall(0).SetReturn(2, 3)
 	swapMock.CallOther().SetReturn(12, 13)
 	v1, v2 = swap(5, 6)
 	v3, v4 = swap(14, 17)

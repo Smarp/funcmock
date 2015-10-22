@@ -20,7 +20,7 @@ func (this *call) Called() bool {
 	return this.called
 }
 
-func (this *call) SetCalled(called bool) *call {
+func (this *call) setCalled(called bool) *call {
 	this.called = true
 	return this
 }

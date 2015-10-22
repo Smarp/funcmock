@@ -17,11 +17,11 @@ func init() {
 /*
 func TestCallReverseOrder(t *testing.T) {
 	RegisterTestingT(t)
-	Expect(emptyMock.CallNth(0)).To(Equal(emptyMock.CallNth(-3)))
-	Expect(emptyMock.CallNth(1)).To(Equal(emptyMock.CallNth(-2)))
-	Expect(emptyMock.CallNth(2)).To(Equal(emptyMock.CallNth(-1)))
+	Expect(emptyMock.NthCall(0)).To(Equal(emptyMock.NthCall(-3)))
+	Expect(emptyMock.NthCall(1)).To(Equal(emptyMock.NthCall(-2)))
+	Expect(emptyMock.NthCall(2)).To(Equal(emptyMock.NthCall(-1)))
 
-	Expect(emptyMock.CallNth(0)).NotTo(Equal(emptyMock.CallNth(1)))
-	Expect(emptyMock.CallNth(0)).NotTo(Equal(emptyMock.CallNth(-2)))
+	Expect(emptyMock.NthCall(0)).NotTo(Equal(emptyMock.NthCall(1)))
+	Expect(emptyMock.NthCall(0)).NotTo(Equal(emptyMock.NthCall(-2)))
 }
 */

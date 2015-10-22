@@ -20,7 +20,7 @@ func (this *MockController) CallCount() int {
 	return this.counter
 }
 
-func (this *MockController) CallNth(nth int) (c *call) {
+func (this *MockController) NthCall(nth int) (c *call) {
 	c = this.callStack[nth]
 	if c == nil {
 		c = new(call)

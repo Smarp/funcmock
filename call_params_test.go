@@ -30,7 +30,7 @@ func TestCalledTrue(t *testing.T) {
 
 func TestCall0thParams(t *testing.T) {
 	RegisterTestingT(t)
-	call0nth := swapMock.CallNth(0)
+	call0nth := swapMock.NthCall(0)
 	Expect(call0nth).NotTo(BeNil())
 	Expect(call0nth.ParamNth(0)).To(Equal(3))
 	Expect(call0nth.ParamNth(1)).To(Equal(-5))
@@ -38,7 +38,7 @@ func TestCall0thParams(t *testing.T) {
 
 func TestCallLastParams(t *testing.T) {
 	RegisterTestingT(t)
-	callLast := swapMock.CallNth(2)
+	callLast := swapMock.NthCall(2)
 	Expect(callLast.ParamNth(0)).To(Equal(13))
 	Expect(callLast.ParamNth(1)).To(Equal(-17))
 }
