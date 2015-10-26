@@ -86,6 +86,7 @@ RegisterTestingT(t)
 
 func TestRaceCondition(t *testing.T) {
 	RegisterTestingT(t)
+	// t.SkipNow()
 	testing.Benchmark(func(b *testing.B) {
 		reverse := func(i int) int {
 			return -i

@@ -27,9 +27,16 @@ func Mock(targetFnPtr interface{}) (controller *MockController) {
 			if ok == false {
 				theCall = new(call)
 				controller.add(theCall)
+				theCall.param = make(chan []interface{})
 
 			}
-			// theCall.param = make(chan []interface{})
+
+			{
+				// could be moved out
+				var param []interface{}
+				go func() { theCall.param <- param }()
+
+			}
 			theCall.called = true
 			for i := 0; i < targetFnType.NumIn(); i++ {
 				theCall.appendParam(inValueSlice[i].Interface())
