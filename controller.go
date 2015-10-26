@@ -6,9 +6,9 @@ type MockController struct {
 	originalFunc reflect.Value
 	targetFunc   reflect.Value
 	// we need map, not slice, to set call before it is called
-	callStack map[int]*call
+	callStack chan map[int]*call
 	// we need it to set call, before it is called
-	counter int
+	counter chan int
 	// the default call which shall be used for mint calls
 	defaultYield []reflect.Value
 
@@ -17,7 +17,9 @@ type MockController struct {
 }
 
 func (this *MockController) CallCount() int {
-	return this.counter
+	counter := <-this.counter
+	go func() { this.counter <- counter }()
+	return counter
 }
 
 func (this *MockController) NthCall(nth int) (c *call) {
@@ -30,8 +32,9 @@ func (this *MockController) NthCall(nth int) (c *call) {
 }
 
 func (this *MockController) incrementCounter() {
-	this.counter++
-	return
+	counter := <-this.counter
+	counter++
+	go func() { this.counter <- counter }()
 }
 
 func (this *MockController) SetDefaultReturn(args ...interface{}) {

@@ -6,9 +6,13 @@ func Mock(targetFnPtr interface{}) (controller *MockController) {
 
 	targetFn := reflect.ValueOf(targetFnPtr).Elem()
 	controller = &MockController{
-		callStack: make(map[int]*call),
-		counter:   0,
+		counter:   make(chan int),
+		callStack: make(chan map[int]*call),
 	}
+	go func() {
+		controller.counter <- 0
+		controller.callStack <- make(map[int]*call)
+	}()
 	controller.targetFunc = targetFn
 	targetFnType := targetFn.Type()
 	numberOfOuts := targetFnType.NumOut()
@@ -25,10 +29,10 @@ func Mock(targetFnPtr interface{}) (controller *MockController) {
 			controller.incrementCounter()
 			theCall, ok := controller.callStack[controller.CallCount()-1]
 			if ok == false {
-				theCall = new(call)
+				theCall = &call{
+					param: make(chan []interface{}),
+				}
 				controller.add(theCall)
-				theCall.param = make(chan []interface{})
-
 			}
 
 			{
