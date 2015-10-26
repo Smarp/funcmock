@@ -15,7 +15,7 @@ type call struct {
 }
 
 func (this *call) ParamNth(nth int) interface{} {
-	return this.param[nth]
+	return this.getParams()[nth]
 }
 
 func (this *call) Called() bool {
@@ -46,6 +46,14 @@ func (this *call) Return(args ...interface{}) *call {
 	// needs to be thought over. Whether this function is required or not
 
 	return this
+}
+func (this *call) getParams() []interface{} {
+	return this.param
+}
+
+func (this *call) appendParam(param interface{}) {
+
+	this.param = append(this.param, param)
 }
 
 func sanitizeReturn(returnType reflect.Type, yield interface{}) (sanitizedYield reflect.Value) {

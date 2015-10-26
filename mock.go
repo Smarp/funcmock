@@ -27,16 +27,21 @@ func Mock(targetFnPtr interface{}) (controller *MockController) {
 			if ok == false {
 				theCall = new(call)
 				controller.add(theCall)
+
 			}
+			// theCall.param = make(chan []interface{})
 			theCall.called = true
 			for i := 0; i < targetFnType.NumIn(); i++ {
-				theCall.param = append(theCall.param, inValueSlice[i].Interface())
+				theCall.appendParam(inValueSlice[i].Interface())
 
 			}
 			if numberOfOuts == len(theCall.yield) {
 				// if user has set the return values the spit them out
 				for i := 0; i < numberOfOuts; i++ {
-					yield = append(yield, sanitizeReturn(targetFnType.Out(i), theCall.yield[i]))
+					yield = append(yield,
+						sanitizeReturn(
+							targetFnType.Out(i),
+							theCall.yield[i]))
 				}
 			} else {
 				yield = controller.defaultYield
