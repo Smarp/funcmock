@@ -32,13 +32,13 @@ func TestCall0thParams(t *testing.T) {
 	RegisterTestingT(t)
 	call0nth := swapMock.NthCall(0)
 	Expect(call0nth).NotTo(BeNil())
-	Expect(call0nth.ParamNth(0)).To(Equal(3))
-	Expect(call0nth.ParamNth(1)).To(Equal(-5))
+	Expect(call0nth.NthParam(0)).To(Equal(3))
+	Expect(call0nth.NthParam(1)).To(Equal(-5))
 }
 
 func TestCallLastParams(t *testing.T) {
 	RegisterTestingT(t)
 	callLast := swapMock.NthCall(2)
-	Expect(callLast.ParamNth(0)).To(Equal(13))
-	Expect(callLast.ParamNth(1)).To(Equal(-17))
+	Expect(callLast.NthParam(0)).To(Equal(13))
+	Expect(callLast.NthParam(1)).To(Equal(-17))
 }

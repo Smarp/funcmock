@@ -14,7 +14,7 @@ type call struct {
 	called bool
 }
 
-func (this *call) ParamNth(nth int) interface{} {
+func (this *call) NthParam(nth int) interface{} {
 	return this.getParams()[nth]
 }
 

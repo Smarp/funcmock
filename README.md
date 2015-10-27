@@ -54,6 +54,6 @@
 
  * `call.Called()` returns `bool` indicating whether a particular call to the mock function was made or not.
 
- * `call.ParamNth()` returns the parameter that was used in a particular call to the mock function.
+ * `call.NthParam()` returns the parameter that was used in a particular call to the mock function.
 
  * `call.Return()` its functionality is currently undecided. Returns instance of the same `call`, for now.
