@@ -27,9 +27,9 @@ func (this *MockController) NthCall(nth int) (theCall *call) {
 	theCall, ok := callStack[nth]
 	if ok == false {
 		theCall = &call{
-			param: make(chan []interface{}),
+			param: make(chan map[int]interface{}),
 		}
-		var param []interface{}
+		param := make(map[int]interface{})
 		go func() { theCall.param <- param }()
 
 	}

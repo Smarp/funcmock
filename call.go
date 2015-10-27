@@ -5,7 +5,7 @@ import "reflect"
 type call struct {
 
 	// what parameter the function was passed
-	param chan []interface{}
+	param chan map[int]interface{}
 
 	// what the call to the function returned
 	yield []interface{}
@@ -48,14 +48,16 @@ func (this *call) Return(args ...interface{}) *call {
 	return this
 }
 
-func (this *call) getParams() []interface{} {
+func (this *call) getParams() map[int]interface{} {
 	param := <-this.param
 	go func() { this.param <- param }()
 	return param
 }
 
-func (this *call) appendParam(param interface{}) {
-	go func() { this.param <- append(<-this.param, param) }()
+func (this *call) appendParam(index int, parm interface{}) {
+	param := <-this.param
+	param[index] = parm
+	go func() { this.param <- param }()
 }
 
 func sanitizeReturn(returnType reflect.Type, yield interface{}) (sanitizedYield reflect.Value) {
