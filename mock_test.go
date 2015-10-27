@@ -86,11 +86,12 @@ RegisterTestingT(t)
 
 func TestRaceCondition(t *testing.T) {
 	RegisterTestingT(t)
+	// t.SkipNow()
 	testing.Benchmark(func(b *testing.B) {
 		reverse := func(i int) int {
 			return -i
 		}
-		// b.N = 10000000000
+		// b.N = 100000
 		mockCtrl := Mock(&reverse)
 		// RunParallel will create GOMAXPROCS goroutines
 		// and distribute work among them.

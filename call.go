@@ -5,7 +5,7 @@ import "reflect"
 type call struct {
 
 	// what parameter the function was passed
-	param []interface{}
+	param chan []interface{}
 
 	// what the call to the function returned
 	yield []interface{}
@@ -15,7 +15,7 @@ type call struct {
 }
 
 func (this *call) ParamNth(nth int) interface{} {
-	return this.param[nth]
+	return this.getParams()[nth]
 }
 
 func (this *call) Called() bool {
@@ -46,6 +46,16 @@ func (this *call) Return(args ...interface{}) *call {
 	// needs to be thought over. Whether this function is required or not
 
 	return this
+}
+
+func (this *call) getParams() []interface{} {
+	param := <-this.param
+	go func() { this.param <- param }()
+	return param
+}
+
+func (this *call) appendParam(param interface{}) {
+	go func() { this.param <- append(<-this.param, param) }()
 }
 
 func sanitizeReturn(returnType reflect.Type, yield interface{}) (sanitizedYield reflect.Value) {
