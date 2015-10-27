@@ -22,19 +22,29 @@ func (this *MockController) CallCount() int {
 	return counter
 }
 
-func (this *MockController) NthCall(nth int) (c *call) {
-	c = this.callStack[nth]
-	if c == nil {
-		c = new(call)
-		this.callStack[nth] = c
+func (this *MockController) NthCall(nth int) (theCall *call) {
+	callStack := <-this.callStack
+	theCall, ok := callStack[nth]
+	if ok == false {
+		theCall = &call{
+			param: make(chan []interface{}),
+		}
+		var param []interface{}
+		go func() { theCall.param <- param }()
+
 	}
-	return c
+
+	go func() { this.callStack <- callStack }()
+	this.addCallAt(theCall, nth)
+
+	return theCall
 }
 
-func (this *MockController) incrementCounter() {
+func (this *MockController) incrementCounter() int {
 	counter := <-this.counter
 	counter++
 	go func() { this.counter <- counter }()
+	return counter
 }
 
 func (this *MockController) SetDefaultReturn(args ...interface{}) {
@@ -57,8 +67,15 @@ func (this *MockController) SetDefaultReturn(args ...interface{}) {
 
 }
 
-func (this *MockController) add(c *call) {
-	this.callStack[this.CallCount()-1] = c
+// func (this *MockController) getCallStack() map[int]*call {
+// 	go func() { this.callStack <- callStack }()
+// 	return callStack
+// }
+
+func (this *MockController) addCallAt(theCall *call, index int) {
+	callStack := <-this.callStack
+	callStack[index] = theCall
+	go func() { this.callStack <- callStack }()
 }
 
 func (this *MockController) Called() bool {

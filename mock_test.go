@@ -91,7 +91,7 @@ func TestRaceCondition(t *testing.T) {
 		reverse := func(i int) int {
 			return -i
 		}
-		// b.N = 10000000000
+		// b.N = 100000
 		mockCtrl := Mock(&reverse)
 		// RunParallel will create GOMAXPROCS goroutines
 		// and distribute work among them.
