@@ -28,7 +28,7 @@ func (this *call) Called() bool {
 }
 
 func (this *call) setCalled(called bool) *call {
-	this.called = true
+	this.called = called
 	return this
 }
 
@@ -51,23 +51,24 @@ func (this *call) Return(args ...interface{}) *call {
 }
 
 func (this *call) getParams() []interface{} {
-	select {
-	case param := <-this.param:
-		go func() { this.param <- param }()
-		return param
-	default:
-		if !this.called {
-			panic("The nth call to the mock function has not been made yet")
-		} else {
-			panic("Unexpected error. Report it.")
+	if this.Called() {
+		select {
+		case param := <-this.param:
+			go func() { this.param <- param }()
+			return param
 		}
+	} else {
+		panic("The nth call to the mock function has not been made yet")
 	}
 }
 
 func (this *call) updateParam(parm []interface{}) {
+	this.setCalled(true)
 	select {
 	case <-this.param:
-		go func() { this.param <- parm }()
+		go func() {
+			this.param <- parm
+		}()
 	default:
 		go func() { this.param <- parm }()
 	}
