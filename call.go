@@ -5,7 +5,7 @@ import "reflect"
 type call struct {
 
 	// what parameter the function was passed
-	param chan map[int]interface{}
+	param chan []interface{}
 
 	// what the call to the function returned
 	yield []interface{}
@@ -13,6 +13,11 @@ type call struct {
 	// true if the call has been called, else false
 	called bool
 }
+
+// func (this *call) AllParam() interface{} {
+// 	return this.getParams()
+
+// }
 
 func (this *call) NthParam(nth int) interface{} {
 	return this.getParams()[nth]
@@ -29,11 +34,8 @@ func (this *call) setCalled(called bool) *call {
 
 func (this *call) SetReturn(args ...interface{}) *call {
 
-	/*
+	// Clears any previous return that was set
 
-		Clears any previous return that was set
-
-	*/
 	this.yield = this.yield[:0]
 	for _, nthIndex := range args {
 		this.yield = append(this.yield, nthIndex)
@@ -48,16 +50,27 @@ func (this *call) Return(args ...interface{}) *call {
 	return this
 }
 
-func (this *call) getParams() map[int]interface{} {
-	param := <-this.param
-	go func() { this.param <- param }()
-	return param
+func (this *call) getParams() []interface{} {
+	select {
+	case param := <-this.param:
+		go func() { this.param <- param }()
+		return param
+	default:
+		if !this.called {
+			panic("The nth call to the mock function has not been made yet")
+		} else {
+			panic("Unexpected error. Report it.")
+		}
+	}
 }
 
-func (this *call) appendParam(index int, parm interface{}) {
-	param := <-this.param
-	param[index] = parm
-	go func() { this.param <- param }()
+func (this *call) updateParam(parm []interface{}) {
+	select {
+	case <-this.param:
+		go func() { this.param <- parm }()
+	default:
+		go func() { this.param <- parm }()
+	}
 }
 
 func sanitizeReturn(returnType reflect.Type, yield interface{}) (sanitizedYield reflect.Value) {

@@ -29,9 +29,11 @@ func Mock(targetFnPtr interface{}) (controller *MockController) {
 			theCall := controller.NthCall(callCount - 1)
 
 			theCall.called = true
+			var param []interface{}
 			for i := 0; i < targetFnType.NumIn(); i++ {
-				theCall.appendParam(i, inValueSlice[i].Interface())
+				param = append(param, inValueSlice[i].Interface())
 			}
+			theCall.updateParam(param)
 			if numberOfOuts == len(theCall.yield) {
 				// if user has set the return values the spit them out
 				for i := 0; i < numberOfOuts; i++ {
