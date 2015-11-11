@@ -1,6 +1,8 @@
 package funcmock
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type MockController struct {
 	originalFunc reflect.Value
@@ -21,9 +23,6 @@ func (this *MockController) CallCount() int {
 	select {
 	case count = <-this.counter:
 		go func() { this.counter <- count }()
-	default:
-		count = 0
-		go func() { this.counter <- count }()
 
 	}
 	return count
@@ -35,7 +34,7 @@ func (this *MockController) NthCall(nth int) (theCall *call) {
 	if ok == false {
 		theCall = &call{
 			param:  make(chan []interface{}),
-			called: true,
+			called: false,
 		}
 
 	}
@@ -50,9 +49,6 @@ func (this *MockController) incrementCounter() int {
 	select {
 	case count = <-this.counter:
 		count++
-		go func() { this.counter <- count }()
-	default:
-		count = 1
 		go func() { this.counter <- count }()
 
 	}

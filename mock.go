@@ -1,6 +1,8 @@
 package funcmock
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func Mock(targetFnPtr interface{}) (controller *MockController) {
 
@@ -10,6 +12,7 @@ func Mock(targetFnPtr interface{}) (controller *MockController) {
 		callStack: make(chan map[int]*call),
 	}
 	go func() { controller.callStack <- make(map[int]*call) }()
+	go func() {controller.counter <- 0 }()
 
 	controller.targetFunc = targetFn
 	targetFnType := targetFn.Type()
