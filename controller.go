@@ -2,15 +2,19 @@ package funcmock
 
 import (
 	"reflect"
+	"sync"
 )
 
 type MockController struct {
 	originalFunc reflect.Value
 	targetFunc   reflect.Value
+	// A lock for callStack
+	callsMutex *sync.Mutex
 	// we need map, not slice, to set call before it is called
-	callStack chan map[int]*call
-	// we need it to set call, before it is called
-	counter chan int
+	callStack map[int]*call
+	// A lock for counter
+	counterMutex *sync.Mutex
+	counter      int
 	// the default call which shall be used for mint calls
 	defaultYield []reflect.Value
 
@@ -18,41 +22,33 @@ type MockController struct {
 	yieldSet bool
 }
 
-func (this *MockController) CallCount() int {
-	var count int
-	select {
-	case count = <-this.counter:
-		go func() { this.counter <- count }()
-
-	}
-	return count
+func (this *MockController) CallCount() (count int) {
+	this.counterMutex.Lock()
+	count = this.counter
+	this.counterMutex.Unlock()
+	return
 }
 
 func (this *MockController) NthCall(nth int) (theCall *call) {
-	callStack := <-this.callStack
-	theCall, ok := callStack[nth]
-	if ok == false {
+	this.callsMutex.Lock()
+	theCall, ok := this.callStack[nth]
+	if !ok {
 		theCall = &call{
-			param:  make(chan []interface{}),
-			called: false,
+			paramMutex: &sync.Mutex{},
+			called:     false,
 		}
-
+		this.callStack[nth] = theCall
 	}
-
-	go func() { this.callStack <- callStack }()
-	this.addCallAt(theCall, nth)
-	return theCall
+	this.callsMutex.Unlock()
+	return
 }
 
-func (this *MockController) incrementCounter() int {
-	var count int
-	select {
-	case count = <-this.counter:
-		count++
-		go func() { this.counter <- count }()
-
-	}
-	return count
+func (this *MockController) incrementCounter() (count int) {
+	this.counterMutex.Lock()
+	this.counter++
+	count = this.counter
+	this.counterMutex.Unlock()
+	return
 }
 
 func (this *MockController) SetDefaultReturn(args ...interface{}) {
@@ -81,9 +77,10 @@ func (this *MockController) SetDefaultReturn(args ...interface{}) {
 // }
 
 func (this *MockController) addCallAt(theCall *call, index int) {
-	callStack := <-this.callStack
-	callStack[index] = theCall
-	go func() { this.callStack <- callStack }()
+	this.callsMutex.Lock()
+	this.callStack[index] = theCall
+	this.callsMutex.Unlock()
+	return
 }
 
 func (this *MockController) Called() bool {

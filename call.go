@@ -1,11 +1,14 @@
 package funcmock
 
-import "reflect"
+import (
+	"reflect"
+	"sync"
+)
 
 type call struct {
-
+	paramMutex *sync.Mutex
 	// what parameter the function was passed
-	param chan []interface{}
+	param []interface{}
 
 	// what the call to the function returned
 	yield []interface{}
@@ -50,28 +53,23 @@ func (this *call) Return(args ...interface{}) *call {
 	return this
 }
 
-func (this *call) getParams() []interface{} {
+func (this *call) getParams() (param []interface{}) {
 	if this.Called() {
-		select {
-		case param := <-this.param:
-			go func() { this.param <- param }()
-			return param
-		}
+		this.paramMutex.Lock()
+		param = this.param
+		this.paramMutex.Unlock()
+		return
 	} else {
 		panic("The nth call to the mock function has not been made yet")
 	}
 }
 
-func (this *call) updateParam(parm []interface{}) {
+func (this *call) updateParam(param []interface{}) {
 	this.setCalled(true)
-	select {
-	case <-this.param:
-		go func() {
-			this.param <- parm
-		}()
-	default:
-		go func() { this.param <- parm }()
-	}
+	this.paramMutex.Lock()
+	this.param = param
+	this.paramMutex.Unlock()
+	return
 }
 
 func sanitizeReturn(returnType reflect.Type, yield interface{}) (sanitizedYield reflect.Value) {

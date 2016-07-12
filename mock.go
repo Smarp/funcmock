@@ -2,17 +2,20 @@ package funcmock
 
 import (
 	"reflect"
+	"sync"
 )
 
 func Mock(targetFnPtr interface{}) (controller *MockController) {
 
 	targetFn := reflect.ValueOf(targetFnPtr).Elem()
 	controller = &MockController{
-		counter:   make(chan int),
-		callStack: make(chan map[int]*call),
+		counterMutex: &sync.Mutex{},
+		counter:      0,
+		callsMutex:   &sync.Mutex{},
+		callStack:    make(map[int]*call),
 	}
-	go func() { controller.callStack <- make(map[int]*call) }()
-	go func() {controller.counter <- 0 }()
+	//go func() { controller.callStack <- make(map[int]*call) }()
+	//go func() { controller.counter <- 0 }()
 
 	controller.targetFunc = targetFn
 	targetFnType := targetFn.Type()
