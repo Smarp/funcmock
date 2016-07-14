@@ -92,4 +92,12 @@ func (this *MockController) Called() bool {
 
 func (this *MockController) Restore() {
 	this.targetFunc.Set(this.originalFunc)
+	<-this.counter
+	close(this.counter)
+	callStack := <-this.callStack
+	close(this.callStack)
+	for _, call := range callStack {
+		<-call.param
+		close(call.param)
+	}
 }
