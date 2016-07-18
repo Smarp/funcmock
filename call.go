@@ -54,7 +54,7 @@ func (this *call) getParams() []interface{} {
 	if this.Called() {
 		select {
 		case param := <-this.param:
-			go func() { this.param <- param }()
+			this.param <- param
 			return param
 		}
 	} else {
@@ -66,11 +66,9 @@ func (this *call) updateParam(parm []interface{}) {
 	this.setCalled(true)
 	select {
 	case <-this.param:
-		go func() {
-			this.param <- parm
-		}()
+		this.param <- parm
 	default:
-		go func() { this.param <- parm }()
+		this.param <- parm
 	}
 }
 

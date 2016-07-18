@@ -22,8 +22,7 @@ func (this *MockController) CallCount() int {
 	var count int
 	select {
 	case count = <-this.counter:
-		go func() { this.counter <- count }()
-
+		this.counter <- count
 	}
 	return count
 }
@@ -33,13 +32,13 @@ func (this *MockController) NthCall(nth int) (theCall *call) {
 	theCall, ok := callStack[nth]
 	if ok == false {
 		theCall = &call{
-			param:  make(chan []interface{}),
+			param:  make(chan []interface{}, 1),
 			called: false,
 		}
 
 	}
 
-	go func() { this.callStack <- callStack }()
+	this.callStack <- callStack
 	this.addCallAt(theCall, nth)
 	return theCall
 }
@@ -49,8 +48,7 @@ func (this *MockController) incrementCounter() int {
 	select {
 	case count = <-this.counter:
 		count++
-		go func() { this.counter <- count }()
-
+		this.counter <- count
 	}
 	return count
 }
@@ -83,7 +81,7 @@ func (this *MockController) SetDefaultReturn(args ...interface{}) {
 func (this *MockController) addCallAt(theCall *call, index int) {
 	callStack := <-this.callStack
 	callStack[index] = theCall
-	go func() { this.callStack <- callStack }()
+	this.callStack <- callStack
 }
 
 func (this *MockController) Called() bool {

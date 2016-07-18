@@ -8,11 +8,11 @@ func Mock(targetFnPtr interface{}) (controller *MockController) {
 
 	targetFn := reflect.ValueOf(targetFnPtr).Elem()
 	controller = &MockController{
-		counter:   make(chan int),
-		callStack: make(chan map[int]*call),
+		counter:   make(chan int, 1),
+		callStack: make(chan map[int]*call, 1),
 	}
 	go func() { controller.callStack <- make(map[int]*call) }()
-	go func() {controller.counter <- 0 }()
+	go func() { controller.counter <- 0 }()
 
 	controller.targetFunc = targetFn
 	targetFnType := targetFn.Type()
