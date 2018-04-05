@@ -1,14 +1,19 @@
 package funcmock
 
-import "reflect"
+import (
+	"reflect"
+)
 
-func Mock(targetFnPtr interface{}) (controller *mockController) {
+func Mock(targetFnPtr interface{}) (controller *MockController) {
 
 	targetFn := reflect.ValueOf(targetFnPtr).Elem()
-	controller = &mockController{
-		callStack: make(map[int]*call),
-		counter:   0,
+	controller = &MockController{
+		counter:   make(chan int),
+		callStack: make(chan map[int]*call),
 	}
+	go func() { controller.callStack <- make(map[int]*call) }()
+	go func() {controller.counter <- 0 }()
+
 	controller.targetFunc = targetFn
 	targetFnType := targetFn.Type()
 	numberOfOuts := targetFnType.NumOut()
@@ -22,21 +27,20 @@ func Mock(targetFnPtr interface{}) (controller *mockController) {
 
 	mockFn := reflect.MakeFunc(targetFnType,
 		func(inValueSlice []reflect.Value) (yield []reflect.Value) {
-			controller.incrementCounter()
-			theCall, ok := controller.callStack[controller.CallCounter()-1]
-			if ok == false {
-				theCall = new(call)
-				controller.add(theCall)
-			}
-			theCall.called = true
+			callCount := controller.incrementCounter()
+			theCall := controller.NthCall(callCount - 1)
+			var param []interface{}
 			for i := 0; i < targetFnType.NumIn(); i++ {
-				theCall.param = append(theCall.param, inValueSlice[i].Interface())
-
+				param = append(param, inValueSlice[i].Interface())
 			}
+			theCall.updateParam(param)
 			if numberOfOuts == len(theCall.yield) {
 				// if user has set the return values the spit them out
 				for i := 0; i < numberOfOuts; i++ {
-					yield = append(yield, reflect.ValueOf(theCall.yield[i]))
+					yield = append(yield,
+						sanitizeReturn(
+							targetFnType.Out(i),
+							theCall.yield[i]))
 				}
 			} else {
 				yield = controller.defaultYield
