@@ -1,4 +1,4 @@
-*funcmock* is a function mocking library which replaces the lexical placeholder of the function with a mock. It is primarily intended to be used for testing purposes.
+*funcmock* is a Function Mocking Framework in Go which replaces the lexical placeholder of the function with a mock. It is primarily intended to be used for testing purposes.
 
  Using funcmock
 ---------------
