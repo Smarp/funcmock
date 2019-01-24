@@ -1,5 +1,6 @@
 package funcmock
 
+/*
 import "reflect"
 
 type call struct {
@@ -97,3 +98,4 @@ func sanitizeReturn(returnType reflect.Type, yield interface{}) (sanitizedYield 
 	}
 
 }
+*/
