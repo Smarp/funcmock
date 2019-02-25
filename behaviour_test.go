@@ -9,35 +9,35 @@ import (
 	. "github.com/onsi/gomega/gstruct"
 )
 
-var func1Args []string
-var func1 = func(msg string) {
-	func1Args = append(func1Args, msg)
+var mockTestFuncArgs []string
+var mockTestFunc = func(msg string) {
+	mockTestFuncArgs = append(mockTestFuncArgs, msg)
 }
 
-var func2 = func(a int, b string) (int, string) {
+var recordingValuesTestFunc = func(a int, b string) (int, string) {
 	Fail("This function should not be called")
 	return 0, ""
 }
 
-var func3 = func() error {
+var interfaceReturnTestFunc = func() error {
 	Fail("This function should not be called")
 	return nil
 }
 
-var func4 = func(a int) {
+var stressTestFunc = func(a int) {
 	Fail("This function should not be called")
 }
 
-var func5 = func(a, b int) int {
+var setBehaviourTestFunc = func(a, b int) int {
 	Fail("This function should not be called")
 	return 0
 }
 
-type testStruct struct {
-	val int
+type preRecordTestStruct struct {
+	field int
 }
 
-var func6 = func(ts []testStruct) *testStruct {
+var preRecordTestFunc = func(ts []preRecordTestStruct) *preRecordTestStruct {
 	Fail("This function should not be called")
 	return nil
 }
@@ -48,16 +48,16 @@ var _ = Describe("Better Mock Test", func() {
 		var mock *MockController
 
 		BeforeEach(func() {
-			func1Args = make([]string, 0)
+			mockTestFuncArgs = make([]string, 0)
 		})
 		It("should mock and restore the function correctly", func() {
-			func1("call1")
-			mock = Mock(&func1)
-			func1("call2")
+			mockTestFunc("call1")
+			mock = Mock(&mockTestFunc)
+			mockTestFunc("call2")
 			mock.Restore()
-			func1("call3")
+			mockTestFunc("call3")
 
-			Expect(func1Args).To(Equal([]string{"call1", "call3"}))
+			Expect(mockTestFuncArgs).To(Equal([]string{"call1", "call3"}))
 		})
 	})
 	Context("recording values", func() {
@@ -65,20 +65,20 @@ var _ = Describe("Better Mock Test", func() {
 		var mock *MockController
 
 		BeforeEach(func() {
-			mock = Mock(&func2)
+			mock = Mock(&recordingValuesTestFunc)
 		})
 		AfterEach(func() {
 			mock.Restore()
 		})
 		It("should correctly record the number of calls", func() {
 			for i := 0; i < 5; i++ {
-				func2(0, "")
+				recordingValuesTestFunc(0, "")
 			}
 			Expect(mock.CallCount()).To(Equal(5))
 		})
 		It("should record and retrieve the call parameters", func() {
 			for i := 0; i < 25; i++ {
-				func2(i%5, fmt.Sprintf("%d", i/5))
+				recordingValuesTestFunc(i%5, fmt.Sprintf("%d", i/5))
 			}
 			for i := 0; i < 25; i++ {
 				Expect(mock.NthCall(i).NthParam(0)).To(Equal(i % 5))
@@ -87,7 +87,7 @@ var _ = Describe("Better Mock Test", func() {
 		})
 		It("should be able to retrieve all call parameters with NthParams", func() {
 			for i := 0; i < 5; i++ {
-				func2(i*2, fmt.Sprintf("%d", i))
+				recordingValuesTestFunc(i*2, fmt.Sprintf("%d", i))
 			}
 			params1, ok := mock.NthParams(0).([]int)
 			Expect(ok).To(BeTrue())
@@ -97,13 +97,13 @@ var _ = Describe("Better Mock Test", func() {
 			Expect(params2).To(Equal([]string{"0", "1", "2", "3", "4"}))
 		})
 		It("should have zero default return values", func() {
-			a, b := func2(0, "")
+			a, b := recordingValuesTestFunc(0, "")
 			Expect(a).To(Equal(0))
 			Expect(b).To(Equal(""))
 		})
 		It("should support setting default return values", func() {
 			mock.SetDefaultReturn(2, "test")
-			a, b := func2(0, "")
+			a, b := recordingValuesTestFunc(0, "")
 			Expect(a).To(Equal(2))
 			Expect(b).To(Equal("test"))
 		})
@@ -125,11 +125,11 @@ var _ = Describe("Better Mock Test", func() {
 			})
 			It("should support setting return values for specific calls", func() {
 				for i := 0; i < 5; i++ {
-					a, b := func2(0, "")
+					a, b := recordingValuesTestFunc(0, "")
 					Expect(a).To(Equal(i))
 					Expect(b).To(Equal(fmt.Sprintf("%d", i*2)))
 				}
-				a, b := func2(0, "")
+				a, b := recordingValuesTestFunc(0, "")
 				Expect(a).To(Equal(0))
 				Expect(b).To(Equal(""))
 			})
@@ -145,7 +145,7 @@ var _ = Describe("Better Mock Test", func() {
 			})
 			It("should record the returned values", func() {
 				for i := 0; i < 6; i++ {
-					func2(0, "")
+					recordingValuesTestFunc(0, "")
 				}
 				for i := 0; i < 5; i++ {
 					Expect(mock.NthCall(i).NthReturn(0)).To(Equal(i))
@@ -156,7 +156,7 @@ var _ = Describe("Better Mock Test", func() {
 			})
 			It("should be able to retrieve all returned values with NthReturns", func() {
 				for i := 0; i < 6; i++ {
-					func2(0, "")
+					recordingValuesTestFunc(0, "")
 				}
 				returns1, ok := mock.NthReturns(0).([]int)
 				Expect(ok).To(BeTrue())
@@ -172,23 +172,23 @@ var _ = Describe("Better Mock Test", func() {
 		var mock *MockController
 
 		BeforeEach(func() {
-			mock = Mock(&func3)
+			mock = Mock(&interfaceReturnTestFunc)
 		})
 		AfterEach(func() {
 			mock.Restore()
 		})
 		It("should return nil as a default value", func() {
-			ret := func3()
+			ret := interfaceReturnTestFunc()
 			Expect(ret).To(BeNil())
 		})
 		It("should allow setting nil default return for functions returning interfaces", func() {
 			mock.SetDefaultReturn(nil)
-			ret := func3()
+			ret := interfaceReturnTestFunc()
 			Expect(ret).To(BeNil())
 		})
 		It("should allow setting return values which satisfy the interface", func() {
 			mock.SetDefaultReturn(errors.New("test error"))
-			ret := func3()
+			ret := interfaceReturnTestFunc()
 			Expect(ret).To(Equal(errors.New("test error")))
 		})
 	})
@@ -197,7 +197,7 @@ var _ = Describe("Better Mock Test", func() {
 		var mock *MockController
 
 		BeforeEach(func() {
-			mock = Mock(&func4)
+			mock = Mock(&stressTestFunc)
 		})
 		AfterEach(func() {
 			mock.Restore()
@@ -213,7 +213,7 @@ var _ = Describe("Better Mock Test", func() {
 			for i := 0; i < goroutines; i++ {
 				go func(slice []int) {
 					for j := 0; j < callsPerGoroutine; j++ {
-						func4(slice[j])
+						stressTestFunc(slice[j])
 					}
 				}(callParams[i*callsPerGoroutine : (i+1)*callsPerGoroutine])
 			}
@@ -237,7 +237,7 @@ var _ = Describe("Better Mock Test", func() {
 
 		Context("SetBehaviour", func() {
 			BeforeEach(func() {
-				mock = Mock(&func5)
+				mock = Mock(&setBehaviourTestFunc)
 			})
 			AfterEach(func() {
 				mock.Restore()
@@ -259,18 +259,18 @@ var _ = Describe("Better Mock Test", func() {
 					args = append(args, pair{a, b})
 					return a * b
 				})
-				Expect(func5(1, 2)).To(Equal(2))
-				Expect(func5(3, 4)).To(Equal(12))
-				Expect(func5(5, 6)).To(Equal(30))
+				Expect(setBehaviourTestFunc(1, 2)).To(Equal(2))
+				Expect(setBehaviourTestFunc(3, 4)).To(Equal(12))
+				Expect(setBehaviourTestFunc(5, 6)).To(Equal(30))
 				Expect(args).To(Equal([]pair{{1, 2}, {3, 4}, {5, 6}}))
 			})
 			It("should store call info with overridden behaviour", func() {
 				mock.SetBehaviour(func(a, b int) int {
 					return a * b
 				})
-				Expect(func5(1, 2)).To(Equal(2))
-				Expect(func5(3, 4)).To(Equal(12))
-				Expect(func5(5, 6)).To(Equal(30))
+				Expect(setBehaviourTestFunc(1, 2)).To(Equal(2))
+				Expect(setBehaviourTestFunc(3, 4)).To(Equal(12))
+				Expect(setBehaviourTestFunc(5, 6)).To(Equal(30))
 
 				Expect(mock.CallCount()).To(Equal(3))
 
@@ -288,7 +288,7 @@ var _ = Describe("Better Mock Test", func() {
 		})
 		Context("SetPreRecord and SetPreReturn", func() {
 			BeforeEach(func() {
-				mock = Mock(&func6)
+				mock = Mock(&preRecordTestFunc)
 			})
 			AfterEach(func() {
 				mock.Restore()
@@ -299,27 +299,27 @@ var _ = Describe("Better Mock Test", func() {
 					defer func() {
 						err = errors.New(recover().(string))
 					}()
-					mock.SetPreRecord(func(ts []testStruct) *testStruct { return nil })
+					mock.SetPreRecord(func(ts []preRecordTestStruct) *preRecordTestStruct { return nil })
 				}()
 				Expect(err).To(Equal(errors.New(
 					"MockController.SetPreRecord: " +
-						"provided function has invalid type 'func([]funcmock.testStruct) *funcmock.testStruct', " +
-						"requires 'func([]funcmock.testStruct) []funcmock.testStruct'",
+						"provided function has invalid type 'func([]funcmock.preRecordTestStruct) *funcmock.preRecordTestStruct', " +
+						"requires 'func([]funcmock.preRecordTestStruct) []funcmock.preRecordTestStruct'",
 				)))
 			})
 			It("should allow changing the recording behaviour", func() {
-				mock.SetPreRecord(func(ts []testStruct) []testStruct {
-					ret := make([]testStruct, len(ts))
+				mock.SetPreRecord(func(ts []preRecordTestStruct) []preRecordTestStruct {
+					ret := make([]preRecordTestStruct, len(ts))
 					copy(ret, ts)
 					return ret
 				})
-				rets := []testStruct{{val: 1}, {val: 3}}
-				func6(rets)
-				rets[0].val = 2
-				rets[1].val = 4
-				func6(rets)
-				Expect(mock.NthCall(1).NthParam(0)).To(Equal([]testStruct{{val: 2}, {val: 4}}))
-				Expect(mock.NthCall(0).NthParam(0)).To(Equal([]testStruct{{val: 1}, {val: 3}}))
+				rets := []preRecordTestStruct{{field: 1}, {field: 3}}
+				preRecordTestFunc(rets)
+				rets[0].field = 2
+				rets[1].field = 4
+				preRecordTestFunc(rets)
+				Expect(mock.NthCall(1).NthParam(0)).To(Equal([]preRecordTestStruct{{field: 2}, {field: 4}}))
+				Expect(mock.NthCall(0).NthParam(0)).To(Equal([]preRecordTestStruct{{field: 1}, {field: 3}}))
 			})
 			It("should fail if SetPreReturn is called with invalid function type", func() {
 				var err error
@@ -327,44 +327,44 @@ var _ = Describe("Better Mock Test", func() {
 					defer func() {
 						err = errors.New(recover().(string))
 					}()
-					mock.SetPreReturn(func(ts []testStruct) *testStruct { return nil })
+					mock.SetPreReturn(func(ts []preRecordTestStruct) *preRecordTestStruct { return nil })
 				}()
 				Expect(err).To(Equal(errors.New(
 					"MockController.SetPreReturn: " +
-						"provided function has invalid type 'func([]funcmock.testStruct) *funcmock.testStruct', " +
-						"requires 'func(*funcmock.testStruct) *funcmock.testStruct'",
+						"provided function has invalid type 'func([]funcmock.preRecordTestStruct) *funcmock.preRecordTestStruct', " +
+						"requires 'func(*funcmock.preRecordTestStruct) *funcmock.preRecordTestStruct'",
 				)))
 			})
 			It("should return the values returned by the function passed to SetPreReturn from the mocked function", func() {
-				mock.SetPreReturn(func(ts *testStruct) *testStruct {
+				mock.SetPreReturn(func(ts *preRecordTestStruct) *preRecordTestStruct {
 					temp := *ts
 					return &temp
 				})
-				mock.SetDefaultReturn(&testStruct{val: 1})
-				var rets [3]*testStruct
+				mock.SetDefaultReturn(&preRecordTestStruct{field: 1})
+				var rets [3]*preRecordTestStruct
 				for i := 0; i < 3; i++ {
-					st := func6(nil)
-					st.val++
+					st := preRecordTestFunc(nil)
+					st.field++
 					rets[i] = st
 				}
-				Expect(rets[:]).To(Equal([]*testStruct{
-					&testStruct{val: 2},
-					&testStruct{val: 2},
-					&testStruct{val: 2},
+				Expect(rets[:]).To(Equal([]*preRecordTestStruct{
+					&preRecordTestStruct{field: 2},
+					&preRecordTestStruct{field: 2},
+					&preRecordTestStruct{field: 2},
 				}))
 			})
 			It("should record the values returned by the function passed to SetPreReturn", func() {
-				mock.SetPreReturn(func(ts *testStruct) *testStruct {
+				mock.SetPreReturn(func(ts *preRecordTestStruct) *preRecordTestStruct {
 					temp := *ts
 					return &temp
 				})
-				mock.SetDefaultReturn(&testStruct{val: 1})
+				mock.SetDefaultReturn(&preRecordTestStruct{field: 1})
 				for i := 0; i < 3; i++ {
-					st := func6(nil)
-					st.val++
+					st := preRecordTestFunc(nil)
+					st.field++
 				}
 				for i := 0; i < 3; i++ {
-					Expect(mock.NthCall(i).NthReturn(0)).To(PointTo(Equal(testStruct{val: 2})))
+					Expect(mock.NthCall(i).NthReturn(0)).To(PointTo(Equal(preRecordTestStruct{field: 2})))
 				}
 			})
 		})
