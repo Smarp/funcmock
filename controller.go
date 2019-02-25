@@ -6,19 +6,6 @@ import (
 	"sync"
 )
 
-type call struct {
-	params      []interface{}
-	returns     []interface{}
-	specReturns []reflect.Value
-}
-
-func (this *call) recordParams(vals []reflect.Value) {
-	this.params = make([]interface{}, len(vals))
-	for idx, val := range vals {
-		this.params[idx] = val.Interface()
-	}
-}
-
 type MockController struct {
 	target, original reflect.Value
 	calls            []call
@@ -28,11 +15,6 @@ type MockController struct {
 	behaviour        *reflect.Value
 	preRecord        *reflect.Value
 	preReturn        *reflect.Value
-}
-
-type callHandle struct {
-	controller *MockController
-	calln      int
 }
 
 func (this *MockController) getCall(calln int) *call {
@@ -108,31 +90,6 @@ func (this *MockController) NthCall(calln int) callHandle {
 		controller: this,
 		calln:      calln,
 	}
-}
-
-func (this callHandle) NthParam(paramn int) interface{} {
-	this.controller.lock.Lock()
-	defer this.controller.lock.Unlock()
-	if this.controller.callCount <= this.calln {
-		panic(fmt.Sprintf("%dth call has not been made", this.calln))
-	}
-	call := &this.controller.calls[this.calln]
-	return call.params[paramn]
-}
-
-func (this callHandle) NthReturn(ret int) interface{} {
-	this.controller.lock.Lock()
-	defer this.controller.lock.Unlock()
-	if this.controller.callCount <= this.calln {
-		panic(fmt.Sprintf("%dth call has not been made", this.calln))
-	}
-	return this.controller.calls[this.calln].returns[ret]
-}
-
-func (this callHandle) SetReturn(rets ...interface{}) {
-	this.controller.lock.Lock()
-	defer this.controller.lock.Unlock()
-	this.controller.getCall(this.calln).specReturns = this.controller.sanitizeReturns(rets)
 }
 
 func (this *MockController) NthParams(paramn int) interface{} {
