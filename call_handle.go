@@ -7,6 +7,12 @@ type callHandle struct {
 	calln      int
 }
 
+func (this callHandle) Called() bool {
+	this.controller.lock.Lock()
+	defer this.controller.lock.Unlock()
+	return this.controller.callCount > this.calln
+}
+
 func (this callHandle) NthParam(paramn int) interface{} {
 	this.controller.lock.Lock()
 	defer this.controller.lock.Unlock()

@@ -46,14 +46,15 @@
 
  * `MockController.Called()` returns a `bool` indicating whether the mock function was ever called or not.
 
+ * `MockController.CallCount` return a `int` indicating how many times the mock function was called.
+
  * `MockController.Restore()` returns the function to its original version. Mock function cannot be brought back after calling this. Further call the function will not invoke the mock or update the logs associated with the call to the mocked function, and will invoke the original function.
 
- * `MockController.NthCall()` returns a `call` struct instance of the nth call to the mock function since the mock was constructed. Does not have to be already called.
+ * `MockController.NthCall()` returns a `callHandle` struct instance of the nth call to the mock function since the mock was constructed. Does not have to be already called.
 
- * `call.SetReturn` presets the return of a particular call of the mock function. (Of course, it should not have already been called, else it could not be of much use.)
+ * `callHandle.SetReturn` presets the return of a particular call of the mock function. (Of course, it should not have already been called, else it could not be of much use.)
 
- * `call.Called()` returns `bool` indicating whether a particular call to the mock function was made or not.
+ * `callHandle.Called()` returns `bool` indicating whether a particular call to the mock function was made or not.
 
- * `call.NthParam()` returns the parameter that was used in a particular call to the mock function.
+ * `callHandle.NthParam()` returns the parameter that was used in a particular call to the mock function.
 
- * `call.Return()` its functionality is currently undecided. Returns instance of the same `call`, for now.
