@@ -95,6 +95,10 @@ var _ = Describe("Better Mock Test", func() {
 				recordingValuesTestFunc(0, "")
 			}
 			Expect(mock.CallCount()).To(Equal(5))
+			for i := 0; i < 5; i++ {
+				Expect(mock.NthCall(0).Called()).To(BeTrue())
+			}
+			Expect(mock.NthCall(5).Called()).To(BeFalse())
 		})
 		It("should record and retrieve the call parameters", func() {
 			for i := 0; i < 25; i++ {
