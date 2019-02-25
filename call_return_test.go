@@ -52,7 +52,7 @@ func TestSetDefaultReturnWrongType(t *testing.T) {
 		}()
 		swapMock.SetDefaultReturn("three", "four")
 	}()
-	Expect(panicMessage).To(Equal("MockController.validateReturns: 0:th return value, reflect.Value.Convert: value of type string cannot be converted to type int"))
+	Expect(panicMessage).To(Equal("MockController.sanitizeReturns: 0:th return value, reflect.Value.Convert: value of type string cannot be converted to type int"))
 }
 
 func TestSetDefaultReturnNil(t *testing.T) {

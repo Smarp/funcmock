@@ -59,6 +59,26 @@ var _ = Describe("Better Mock Test", func() {
 
 			Expect(mockTestFuncArgs).To(Equal([]string{"call1", "call3"}))
 		})
+		It("should panic if Mock is called with non-pointer argument", func() {
+			var err interface{}
+			func() {
+				defer func() {
+					err = recover()
+				}()
+				mock = Mock(mockTestFunc)
+			}()
+			Expect(err).To(Equal("invalid argument to Mock! must be pointer to function"))
+		})
+		It("should panic if Mock is called with non-function type", func() {
+			var err interface{}
+			func() {
+				defer func() {
+					err = recover()
+				}()
+				mock = Mock(&struct{ field int }{})
+			}()
+			Expect(err).To(Equal("invalid argument to Mock! must be pointer to function"))
+		})
 	})
 	Context("recording values", func() {
 

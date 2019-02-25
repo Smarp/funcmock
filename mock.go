@@ -7,7 +7,7 @@ import (
 
 func Mock(targetFnPtr interface{}) *MockController {
 	if argType := reflect.TypeOf(targetFnPtr); argType.Kind() != reflect.Ptr || argType.Elem().Kind() != reflect.Func {
-		panic("invalid argument to Mock! must be pointer")
+		panic("invalid argument to Mock! must be pointer to function")
 	}
 	targetFn := reflect.ValueOf(targetFnPtr).Elem()
 	targetFnType := targetFn.Type()
