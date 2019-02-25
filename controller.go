@@ -88,7 +88,7 @@ func (this *MockController) NthCall(calln int) callHandle {
 	}
 	return callHandle{
 		controller: this,
-		calln:      calln,
+		callIndex:  calln,
 	}
 }
 
