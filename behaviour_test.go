@@ -115,7 +115,7 @@ var _ = Describe("Better Mock Test", func() {
 				}()
 				mock.SetDefaultReturn("test", 2)
 			}()
-			Expect(err).To(Equal(errors.New("MockController.validateReturns: 0:th return value, reflect.Value.Convert: value of type string cannot be converted to type int")))
+			Expect(err).To(Equal(errors.New("MockController.sanitizeReturns: 0:th return value, reflect.Value.Convert: value of type string cannot be converted to type int")))
 		})
 		Context("per call return values", func() {
 			BeforeEach(func() {
@@ -141,7 +141,7 @@ var _ = Describe("Better Mock Test", func() {
 					}()
 					mock.NthCall(0).SetReturn("test", 2)
 				}()
-				Expect(err).To(Equal(errors.New("MockController.validateReturns: 0:th return value, reflect.Value.Convert: value of type string cannot be converted to type int")))
+				Expect(err).To(Equal(errors.New("MockController.sanitizeReturns: 0:th return value, reflect.Value.Convert: value of type string cannot be converted to type int")))
 			})
 			It("should record the returned values", func() {
 				for i := 0; i < 6; i++ {

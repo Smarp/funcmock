@@ -37,7 +37,9 @@ type callHandle struct {
 
 func (this *MockController) getCall(calln int) *call {
 	if len(this.calls) <= calln {
-		//this growth factor guarantees amortized O(1) time for insertions
+		/*Since this function is likely to be called with strictly increasing values in `calln`, `calls`
+		is resized to at least twice its previous size. It makes this branch be taken at most log_2(n)
+		times, reducing the times `append` and `make` are called.*/
 		this.calls = append(this.calls, make([]call, calln+1)...)
 	}
 	return &this.calls[calln]
@@ -49,7 +51,7 @@ func (this *MockController) SetDefaultReturn(rets ...interface{}) {
 	if this.defaultReturns != nil {
 		panic("Can only call SetDefaultReturn once")
 	}
-	this.defaultReturns = this.validateReturns(rets)
+	this.defaultReturns = this.sanitizeReturns(rets)
 }
 
 func (this *MockController) Call(params []reflect.Value) (rets []reflect.Value) {
@@ -130,7 +132,7 @@ func (this callHandle) NthReturn(ret int) interface{} {
 func (this callHandle) SetReturn(rets ...interface{}) {
 	this.controller.lock.Lock()
 	defer this.controller.lock.Unlock()
-	this.controller.getCall(this.calln).specReturns = this.controller.validateReturns(rets)
+	this.controller.getCall(this.calln).specReturns = this.controller.sanitizeReturns(rets)
 }
 
 func (this *MockController) NthParams(paramn int) interface{} {
@@ -171,19 +173,19 @@ func (this *MockController) SetPreRecord(fn interface{}) *MockController {
 	this.lock.Lock()
 	defer this.lock.Unlock()
 
-	fnval := reflect.ValueOf(fn)
-	fntype := fnval.Type()
+	fnValue := reflect.ValueOf(fn)
+	fnType := fnValue.Type()
 
-	tgtype := this.target.Type()
-	intypes := make([]reflect.Type, 0, tgtype.NumIn())
-	for i := 0; i < tgtype.NumIn(); i++ {
-		intypes = append(intypes, tgtype.In(i))
+	targetFnType := this.target.Type()
+	inTypes := make([]reflect.Type, 0, targetFnType.NumIn())
+	for i := 0; i < targetFnType.NumIn(); i++ {
+		inTypes = append(inTypes, targetFnType.In(i))
 	}
-	reqtype := reflect.FuncOf(intypes, intypes, tgtype.IsVariadic())
-	if fntype != reqtype {
-		panic(fmt.Sprintf("MockController.SetPreRecord: provided function has invalid type '%s', requires '%s'", fntype.String(), reqtype.String()))
+	requiredType := reflect.FuncOf(inTypes, inTypes, false)
+	if fnType != requiredType {
+		panic(fmt.Sprintf("MockController.SetPreRecord: provided function has invalid type '%s', requires '%s'", fnType.String(), requiredType.String()))
 	}
-	this.preRecord = &fnval
+	this.preRecord = &fnValue
 
 	return this
 }
@@ -192,19 +194,19 @@ func (this *MockController) SetPreReturn(fn interface{}) *MockController {
 	this.lock.Lock()
 	defer this.lock.Unlock()
 
-	fnval := reflect.ValueOf(fn)
-	fntype := fnval.Type()
+	fnValue := reflect.ValueOf(fn)
+	fnType := fnValue.Type()
 
-	tgtype := this.target.Type()
-	outtypes := make([]reflect.Type, 0, tgtype.NumOut())
-	for i := 0; i < tgtype.NumOut(); i++ {
-		outtypes = append(outtypes, tgtype.Out(i))
+	targetType := this.target.Type()
+	outTypes := make([]reflect.Type, 0, targetType.NumOut())
+	for i := 0; i < targetType.NumOut(); i++ {
+		outTypes = append(outTypes, targetType.Out(i))
 	}
-	reqtype := reflect.FuncOf(outtypes, outtypes, false)
-	if fntype != reqtype {
-		panic(fmt.Sprintf("MockController.SetPreReturn: provided function has invalid type '%s', requires '%s'", fntype.String(), reqtype.String()))
+	requiredType := reflect.FuncOf(outTypes, outTypes, false)
+	if fnType != requiredType {
+		panic(fmt.Sprintf("MockController.SetPreReturn: provided function has invalid type '%s', requires '%s'", fnType.String(), requiredType.String()))
 	}
-	this.preReturn = &fnval
+	this.preReturn = &fnValue
 
 	return this
 }
@@ -215,11 +217,11 @@ func (this *MockController) Restore() {
 	this.target.Set(this.original)
 }
 
-func (this *MockController) validateReturns(ins []interface{}) []reflect.Value {
+func (this *MockController) sanitizeReturns(ins []interface{}) []reflect.Value {
 	var idx int
 	defer func() {
 		if p := recover(); p != nil {
-			panic(fmt.Sprintf("MockController.validateReturns: %d:th return value, %s", idx, p.(string)))
+			panic(fmt.Sprintf("MockController.sanitizeReturns: %d:th return value, %s", idx, p.(string)))
 		}
 	}()
 	rets := make([]reflect.Value, len(ins))
