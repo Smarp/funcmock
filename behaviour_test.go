@@ -14,7 +14,7 @@ var mockTestFunc = func(msg string) {
 	mockTestFuncArgs = append(mockTestFuncArgs, msg)
 }
 
-var recordingValuesTestFunc = func(a int, b string) (int, string) {
+var recordingValuesTestFunc = func(a int, b string, c interface{}) (int, string) {
 	Fail("This function should not be called")
 	return 0, ""
 }
@@ -92,7 +92,7 @@ var _ = Describe("Better Mock Test", func() {
 		})
 		It("should correctly record the number of calls", func() {
 			for i := 0; i < 5; i++ {
-				recordingValuesTestFunc(0, "")
+				recordingValuesTestFunc(0, "", nil)
 			}
 			Expect(mock.CallCount()).To(Equal(5))
 			for i := 0; i < 5; i++ {
@@ -102,32 +102,40 @@ var _ = Describe("Better Mock Test", func() {
 		})
 		It("should record and retrieve the call parameters", func() {
 			for i := 0; i < 25; i++ {
-				recordingValuesTestFunc(i%5, fmt.Sprintf("%d", i/5))
+				recordingValuesTestFunc(i%5, fmt.Sprintf("%d", i/5), nil)
 			}
 			for i := 0; i < 25; i++ {
 				Expect(mock.NthCall(i).NthParam(0)).To(Equal(i % 5))
 				Expect(mock.NthCall(i).NthParam(1)).To(Equal(fmt.Sprintf("%d", i/5)))
+				Expect(mock.NthCall(i).NthParam(2)).To(BeNil())
 			}
 		})
 		It("should be able to retrieve all call parameters with NthParams", func() {
 			for i := 0; i < 5; i++ {
-				recordingValuesTestFunc(i*2, fmt.Sprintf("%d", i))
+				if i%2 == 0 {
+					recordingValuesTestFunc(i*2, fmt.Sprintf("%d", i), nil)
+				} else {
+					recordingValuesTestFunc(i*2, fmt.Sprintf("%d", i), i)
+				}
 			}
 			params1, ok := mock.NthParams(0).([]int)
 			Expect(ok).To(BeTrue())
 			params2, ok := mock.NthParams(1).([]string)
 			Expect(ok).To(BeTrue())
+			params3, ok := mock.NthParams(2).([]interface{})
+			Expect(ok).To(BeTrue())
 			Expect(params1).To(Equal([]int{0, 2, 4, 6, 8}))
 			Expect(params2).To(Equal([]string{"0", "1", "2", "3", "4"}))
+			Expect(params3).To(Equal([]interface{}{nil, 1, nil, 3, nil}))
 		})
 		It("should have zero default return values", func() {
-			a, b := recordingValuesTestFunc(0, "")
+			a, b := recordingValuesTestFunc(0, "", nil)
 			Expect(a).To(Equal(0))
 			Expect(b).To(Equal(""))
 		})
 		It("should support setting default return values", func() {
 			mock.SetDefaultReturn(2, "test")
-			a, b := recordingValuesTestFunc(0, "")
+			a, b := recordingValuesTestFunc(0, "", nil)
 			Expect(a).To(Equal(2))
 			Expect(b).To(Equal("test"))
 		})
@@ -149,11 +157,11 @@ var _ = Describe("Better Mock Test", func() {
 			})
 			It("should support setting return values for specific calls", func() {
 				for i := 0; i < 5; i++ {
-					a, b := recordingValuesTestFunc(0, "")
+					a, b := recordingValuesTestFunc(0, "", nil)
 					Expect(a).To(Equal(i))
 					Expect(b).To(Equal(fmt.Sprintf("%d", i*2)))
 				}
-				a, b := recordingValuesTestFunc(0, "")
+				a, b := recordingValuesTestFunc(0, "", nil)
 				Expect(a).To(Equal(0))
 				Expect(b).To(Equal(""))
 			})
@@ -169,7 +177,7 @@ var _ = Describe("Better Mock Test", func() {
 			})
 			It("should record the returned values", func() {
 				for i := 0; i < 6; i++ {
-					recordingValuesTestFunc(0, "")
+					recordingValuesTestFunc(0, "", nil)
 				}
 				for i := 0; i < 5; i++ {
 					Expect(mock.NthCall(i).NthReturn(0)).To(Equal(i))
@@ -180,7 +188,7 @@ var _ = Describe("Better Mock Test", func() {
 			})
 			It("should be able to retrieve all returned values with NthReturns", func() {
 				for i := 0; i < 6; i++ {
-					recordingValuesTestFunc(0, "")
+					recordingValuesTestFunc(0, "", nil)
 				}
 				returns1, ok := mock.NthReturns(0).([]int)
 				Expect(ok).To(BeTrue())

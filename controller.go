@@ -97,7 +97,12 @@ func (this *MockController) NthParams(paramn int) interface{} {
 	defer this.lock.Unlock()
 	val := reflect.MakeSlice(reflect.SliceOf(this.target.Type().In(paramn)), int(this.callCount), int(this.callCount))
 	for idx, call := range this.calls[:this.callCount] {
-		val.Index(idx).Set(reflect.ValueOf(call.params[paramn]))
+		param := call.params[paramn]
+		if param == nil {
+			val.Index(idx).Set(reflect.Zero(this.target.Type().In(paramn)))
+		} else {
+			val.Index(idx).Set(reflect.ValueOf(param))
+		}
 	}
 	return val.Interface()
 }
